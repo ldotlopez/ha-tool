@@ -1,0 +1,108 @@
+blueprint:
+  name: Aqara cube controls
+  description: Aqara cube per side controls
+  domain: automation
+  input:
+    cube_action_sensor:
+      name: Cube action sensor
+      description: Cube action sensor
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+
+    cube_side_sensor:
+      name: Cube side sensor
+      description: Cube side sensor
+      selector:
+        entity:
+          filter:
+            - domain: sensor
+
+    selected_cube_side:
+      name: Selected cube side
+      description: Selected cube side
+      selector:
+        text:
+          # min: 0
+          # max: 5
+          # mode: box
+   
+    shake_actions:
+      name: Shake actions
+      description: Shake actions
+      selector:
+        action:
+      default: []
+
+    slide_actions:
+      name: Slide actions
+      description: Slide actions
+      selector:
+        action:
+      default: []
+
+    rotate_left_actions:
+      name: Rotate left actions
+      description: Rotate left actions
+      selector:
+        action:
+      default: []
+
+    rotate_right_actions:
+      name: Rotate right actions
+      description: Rotate right actions
+      selector:
+        action:
+      default: []
+
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input 'cube_action_sensor'
+
+
+condition:
+  - condition: state
+    entity_id: !input 'cube_side_sensor'
+    state: !input 'selected_cube_side'
+
+  - condition: template
+    value_template: "{{ trigger.to_state.attributes.action != '' }}"
+
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.attributes.action == 'rotate_left' }}"
+        sequence: !input 'rotate_left_actions'
+
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.attributes.action == 'rotate_right' }}"
+        sequence: !input 'rotate_right_actions'
+
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.attributes.action == 'shake' }}"
+        sequence: !input 'shake_actions'
+
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.attributes.action == 'slide' }}"
+        sequence: !input 'slide_actions'
+
+    # default:
+    #   - service: persistent_notification.create
+    #     metadata: {}
+    #     data:
+    #       message: "Action: {{ trigger.to_state.attributes.action }}"
+
+
+mode: restart
+
